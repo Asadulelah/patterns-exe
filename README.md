@@ -1,17 +1,17 @@
 # PATTERNS.EXE 🩻
 
-**Eight questions. One verdict. No mercy setting.**
+**It finds out where you are. Then it adapts. Then it dares you.**
 
-A self-sabotage diagnostic for builders. It asks eight uncomfortable questions, scores you against eight real failure patterns, and stamps a verdict you can download and share. Blunt by design: the kind version doesn't work.
+A self-sabotage diagnostic for builders. v3: a three-question intake locates you (student, worker, builder, drifter), then eight adaptive questions drawn from a 17-question bank score you against THIRTEEN failure patterns - the original builder eight plus five universal ones (The Spectator, The Permission Seeker, The Comfortable, The Someday, Zero Risk). The verdict now ships with THE DARE: one calibrated uncomfortable action with a 7-day deadline, printed on the shareable card, and stamps a verdict you can download and share. Blunt by design: the kind version doesn't work.
 
 **Run it:** https://patterns-exe.vercel.app
 
 ![question](shot-d1-2-question.png)
 ![verdict](shot-d1-4-verdict.png)
 
-## The eight patterns
+## The thirteen patterns
 
-01 The Comfort Trap · 02 Building Instead of Selling · 03 The 80% Problem · 04 Planning as Procrastination · 05 Pride Blocking Help · 06 The Rebuild Loop · 07 Outsourced Identity · 08 The Broken Clock
+01 The Comfort Trap · 02 Building Instead of Selling · 03 The 80% Problem · 04 Planning as Procrastination · 05 Pride Blocking Help · 06 The Rebuild Loop · 07 Outsourced Identity · 08 The Broken Clock · 09 The Spectator · 10 The Permission Seeker · 11 The Comfortable · 12 The Someday · 13 Zero Risk
 
 They come from a real audit: the kind a builder runs on himself at 3 AM after a year of "busy." The patterns are real. The wording is the part that hurt.
 

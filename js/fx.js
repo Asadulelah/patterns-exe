@@ -228,6 +228,135 @@ const FX = (() => {
         x.fillStyle = `rgba(${DIM},.55)`; x.font = '9px Kode Mono'; x.textAlign = 'center';
         x.fillText('YOUR SCHEDULE, LIVE', cx, h - 6); x.textAlign = 'left';
       }
+    },
+
+    /* THE SPECTATOR: a full audience faces an empty stage. Sometimes one
+       dot leans toward it, brightens... and sits back down. */
+    spectator: {
+      init(w, h) {
+        const A = [];
+        for (let r = 0; r < 4; r++) for (let c = 0; c < 14; c++)
+          A.push({ x: w * .25 + c * (w * .5 / 13), y: h * .55 + r * 11, lean: 0, hot: 0 });
+        return { A, brave: -1, t0: 0 };
+      },
+      draw(x, w, h, t, st) {
+        x.strokeStyle = `rgba(${BONE},.5)`; x.strokeRect(w * .3, h * .12, w * .4, h * .22);
+        x.fillStyle = `rgba(${DIM},.5)`; x.font = '9px Kode Mono'; x.textAlign = 'center';
+        x.fillText('THE STAGE (EMPTY)', w * .5, h * .12 + h * .11 + 3);
+        if (t - st.t0 > 130) { st.t0 = t; st.brave = Math.floor(Math.random() * st.A.length); }
+        st.A.forEach((a, i) => {
+          if (i === st.brave) { a.hot = Math.min(1, a.hot + .04); if (a.hot >= 1) st.brave = -1; }
+          else a.hot = Math.max(0, a.hot - .02);
+          const lift = a.hot * 5;
+          x.fillStyle = i === st.brave || a.hot > .2 ? `rgba(${RED},${.4 + a.hot * .5})` : `rgba(${BONE},.4)`;
+          x.fillRect(a.x, a.y - lift, 3, 3);
+        });
+        x.fillStyle = `rgba(${DIM},.5)`; x.fillText('THE AUDIENCE (YOU ARE IN IT)', w * .5, h - 8); x.textAlign = 'left';
+      }
+    },
+
+    /* THE PERMISSION SEEKER: the door is wide open. The queue waits at
+       the little closed window anyway. */
+    permission: {
+      init(w, h) {
+        const Q = [];
+        for (let i = 0; i < 9; i++) Q.push({ x: w * .62 + i * 14, y: h * .58, shuffle: Math.random() * 6.28 });
+        return { Q };
+      },
+      draw(x, w, h, t, st) {
+        /* open door, glowing faintly */
+        x.strokeStyle = `rgba(${BONE},.8)`; x.strokeRect(w * .14, h * .2, 34, h * .55);
+        x.fillStyle = `rgba(${BONE},.06)`; x.fillRect(w * .14, h * .2, 34, h * .55);
+        x.fillStyle = `rgba(${DIM},.6)`; x.font = '9px Kode Mono'; x.textAlign = 'center';
+        x.fillText('THE DOOR (OPEN)', w * .14 + 17, h * .2 + h * .55 + 14);
+        /* closed permission window */
+        x.strokeStyle = `rgba(${RED},.7)`; x.strokeRect(w * .55, h * .42, 26, 20);
+        x.beginPath(); x.moveTo(w * .55, h * .42); x.lineTo(w * .55 + 26, h * .42 + 20); x.stroke();
+        x.fillText('PERMISSION DESK (CLOSED)', w * .55 + 13, h * .42 + 36);
+        /* the queue, politely shuffling */
+        for (const q of st.Q) {
+          q.shuffle += .05;
+          x.fillStyle = `rgba(${BONE},.6)`;
+          x.fillRect(q.x + Math.sin(q.shuffle) * 1.2, q.y, 3, 6);
+        }
+        x.textAlign = 'left';
+      }
+    },
+
+    /* THE COMFORTABLE: a vital-signs line that almost spikes, then
+       remembers itself and settles. all quiet. */
+    comfortable: {
+      init() { return { pts: [], urge: 0, t0: 0 }; },
+      draw(x, w, h, t, st) {
+        const mid = h * .5;
+        if (t - st.t0 > 220) { st.t0 = t; st.urge = 1; }            /* an impulse arrives */
+        let y = mid + Math.sin(t * .08) * 1.2;                       /* the flat, pleasant line */
+        if (st.urge > 0) {
+          y = mid - st.urge * h * .26;                               /* it rises... */
+          st.urge -= .02;                                            /* ...and politely declines */
+          if (st.urge < .35 && st.urge > 0) y = mid - st.urge * h * .08;
+        }
+        st.pts.push(y); if (st.pts.length > w * .8) st.pts.shift();
+        x.strokeStyle = `rgba(${BONE},.7)`; x.beginPath();
+        st.pts.forEach((p, i) => i ? x.lineTo(w * .1 + i, p) : x.moveTo(w * .1 + i, p));
+        x.stroke();
+        x.fillStyle = `rgba(${DIM},.55)`; x.font = '9px Kode Mono'; x.textAlign = 'center';
+        x.fillText('YOUR PULSE, FIGURATIVELY · ALL QUIET', w * .5, h - 8);
+        if (st.urge > .8) { x.fillStyle = `rgba(${RED},.7)`; x.fillText('AN URGE', w * .1 + st.pts.length, mid - h * .3); }
+        x.textAlign = 'left';
+      }
+    },
+
+    /* THE SOMEDAY: a calendar where the marked day hops one week
+       further away every time the cursor gets close to it. */
+    someday: {
+      init(w, h) { return { mark: 9, cx: 0, t0: 0 }; },
+      draw(x, w, h, t, st) {
+        const cols = 7, rows = 4, cw = Math.min(34, w * .6 / cols), ch = Math.min(22, h * .6 / rows);
+        const gx = w * .5 - cols * cw / 2, gy = h * .16;
+        for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+          const i = r * cols + c;
+          x.strokeStyle = `rgba(${BONE},.18)`; x.strokeRect(gx + c * cw, gy + r * ch, cw, ch);
+          if (i === st.mark) {
+            x.fillStyle = `rgba(${RED},.85)`; x.font = '700 11px Kode Mono'; x.textAlign = 'center';
+            x.fillText('START', gx + c * cw + cw / 2, gy + r * ch + ch / 2 + 4);
+          }
+        }
+        /* the cursor crawls toward the marked day */
+        const target = { x: gx + (st.mark % cols) * cw + cw / 2, y: gy + Math.floor(st.mark / cols) * ch + ch / 2 };
+        st.cx += (target.x - st.cx) * .012;
+        const cy = gy + rows * ch + 16;
+        x.fillStyle = `rgba(${BONE},.85)`;
+        x.beginPath(); x.moveTo(st.cx, cy); x.lineTo(st.cx - 4, cy + 9); x.lineTo(st.cx + 4, cy + 9); x.fill();
+        if (Math.abs(st.cx - target.x) < cw * .8 && st.mark < cols * rows - 2) st.mark += 7 - (st.mark + 7 >= cols * rows ? 6 : 0); /* it hops a week */
+        if (st.mark >= cols * rows - 1) st.mark = 9;
+        x.fillStyle = `rgba(${DIM},.55)`; x.font = '9px Kode Mono'; x.textAlign = 'center';
+        x.fillText('THE START DATE, RETREATING', w * .5, h - 8); x.textAlign = 'left';
+      }
+    },
+
+    /* ZERO RISK: a chip lifts off the stack, hovers over the table,
+       and goes back. every time. */
+    zerorisk: {
+      init() { return { p: 0, dir: 1, hold: 0 }; },
+      draw(x, w, h, t, st) {
+        const sx = w * .25, sy = h * .62, tx2 = w * .68, ty = h * .5;
+        /* the stack */
+        for (let i = 0; i < 5; i++) { x.strokeStyle = `rgba(${BONE},.6)`; x.strokeRect(sx - 14, sy - i * 6, 28, 5); }
+        /* the table circle */
+        x.strokeStyle = `rgba(${RED},.45)`; x.setLineDash([4, 5]);
+        x.beginPath(); x.arc(tx2, ty, Math.min(w, h) * .16, 0, 7); x.stroke(); x.setLineDash([]);
+        x.fillStyle = `rgba(${DIM},.55)`; x.font = '9px Kode Mono'; x.textAlign = 'center';
+        x.fillText('THE TABLE', tx2, ty + Math.min(w, h) * .16 + 14);
+        x.fillText('YOUR CHIPS (INTACT)', sx, sy + 18);
+        /* the chip that never commits */
+        if (st.dir > 0) { st.p += .008; if (st.p >= .82) { st.hold++; if (st.hold > 40) { st.dir = -1; st.hold = 0; } } }
+        else { st.p -= .014; if (st.p <= 0) { st.p = 0; st.dir = 1; } }
+        const px = sx + (tx2 - sx) * st.p, py = sy - 30 - Math.sin(st.p * Math.PI) * h * .22;
+        x.strokeStyle = `rgba(${BONE},.9)`; x.strokeRect(px - 14, py, 28, 5);
+        if (st.dir < 0) { x.fillStyle = `rgba(${RED},.75)`; x.fillText('NEVER MIND', px, py - 10); }
+        x.textAlign = 'left';
+      }
     }
   };
 

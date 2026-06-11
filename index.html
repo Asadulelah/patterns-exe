@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PATTERNS.EXE - a self-sabotage diagnostic for builders</title>
-<meta name="description" content="Eight questions. One verdict. A diagnostic that names the pattern quietly killing your output. Built from a real audit that hurt.">
+<title>PATTERNS.EXE - the self-sabotage diagnostic</title>
+<meta name="description" content="It finds out where you are. Then it adapts. Then it dares you. Thirteen patterns, one verdict, no mercy setting. Built from a real audit that hurt.">
 <meta property="og:title" content="PATTERNS.EXE">
-<meta property="og:description" content="Eight questions. One verdict. No mercy setting. Find the pattern quietly killing your output.">
+<meta property="og:description" content="It finds out where you are. Then it adapts. Then it dares you. One verdict, no mercy setting.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://patterns-exe.vercel.app">
 <meta name="theme-color" content="#07080A">
@@ -31,7 +31,7 @@
     <div class="sysline">SYSTEM READY</div>
     <div id="bootLines"></div>
     <button class="enter" id="beginBtn">BEGIN THE SCAN</button>
-    <div class="hint" id="bootHint">or press ENTER · 8 questions · ~2 minutes · the honest answers work better</div>
+    <div class="hint" id="bootHint">or press ENTER · 3 + 8 questions · ~3 minutes · the honest answers work better</div>
   </section>
 
   <!-- INTAKE -->
@@ -73,8 +73,13 @@
       <div class="cell"><div class="l">THE COST</div><div class="b" id="vCost"></div></div>
       <div class="cell"><div class="l">THE PRESCRIPTION</div><div class="b" id="vRx"></div></div>
     </div>
+    <div class="darebox" id="dareBox">
+      <div class="dl">THE DARE · YOU HAVE 7 DAYS</div>
+      <p id="vDare"></p>
+      <div class="ds">Come back when it's done. The machine remembers nothing. You will.</div>
+    </div>
     <div class="profile">
-      <div class="l" id="vProfL">FULL TRACE · ALL EIGHT PATTERNS</div>
+      <div class="l" id="vProfL">FULL TRACE · ALL THIRTEEN PATTERNS</div>
       <div class="bars" id="vBars"></div>
     </div>
     <div class="secondary" id="vSec"></div>

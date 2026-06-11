@@ -109,6 +109,12 @@ html.no-motion *{animation:none!important;transition:none!important}
 .cell .l{color:var(--faint);font-size:10px;letter-spacing:.28em;margin-bottom:12px}
 .cell .b{color:var(--dim);font-size:13px;line-height:1.78}
 .cell .b b{color:var(--bone);font-weight:400}
+.darebox{margin-top:26px;border:1px solid var(--red);background:rgba(224,49,49,.05);padding:22px 22px 20px;
+  opacity:0;transform:translateY(10px);transition:.5s}
+.darebox.go{opacity:1;transform:none}
+.darebox .dl{color:var(--red);font-size:11px;letter-spacing:.3em;font-weight:700;margin-bottom:12px}
+.darebox p{color:var(--bone);font-size:15px;line-height:1.8}
+.darebox .ds{margin-top:12px;color:var(--faint);font-size:11px;letter-spacing:.06em;font-style:italic;font-family:var(--serif);font-size:15px}
 .profile{margin-top:30px}
 .profile .l{color:var(--faint);font-size:10px;letter-spacing:.28em;margin-bottom:14px}
 .secondary{margin-top:24px;color:var(--faint);font-size:12px;letter-spacing:.08em;line-height:1.9}

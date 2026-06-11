@@ -1,13 +1,16 @@
-/* PATTERNS.EXE - application flow.
-   boot -> intake -> exam (8 scans, live vignettes) -> analysis -> verdict
-   Deep links: #p1..#p8 opens a shared verdict dossier. */
+/* PATTERNS.EXE v3 - application flow.
+   boot -> intake (locates you) -> adaptive exam -> analysis -> verdict + dare
+   Deep links: #p1..#p13 open a shared verdict dossier. */
 
 const $ = id => document.getElementById(id);
 const show = id => { document.querySelectorAll('.screen').forEach(s => s.classList.remove('on')); $(id).classList.add('on'); };
+const pad = n => String(n).padStart(2, '0');
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
 const STATE = {
-  subject: '', qi: 0, primary: 4, shared: false,
-  score: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0 }
+  subject: '', phase: 'intake', qi: 0, primary: 4, shared: false,
+  votes: { doer: 0, worker: 0, drifter: 0 }, profile: 'worker', exam: [],
+  score: Object.fromEntries(Object.keys(PATTERNS).map(k => [k, 0]))
 };
 
 /* ---------------- typing ---------------- */
@@ -31,7 +34,7 @@ function type(el, text, speed, done) {
   })();
 }
 
-/* ---------------- chrome toggles ---------------- */
+/* ---------------- chrome ---------------- */
 $('sndTgl').onclick = e => {
   const on = AudioEngine.toggle();
   e.target.textContent = on ? 'SOUND ON' : 'SOUND OFF';
@@ -46,11 +49,10 @@ $('motTgl').onclick = e => {
 
 /* ---------------- boot ---------------- */
 FX.dust($('dust'));
-
 const BOOT = [
   ['PATTERNS.EXE', 'title'],
-  ['a self-sabotage diagnostic for builders.', ''],
-  ['eight questions. one verdict. no mercy setting.', 'dim'],
+  ['a self-sabotage diagnostic. for every human, not just the busy ones.', ''],
+  ['first it finds out where you are. then it adapts. then it dares you.', 'dim'],
   ['built from a real audit. the kind that hurt.', 'dim']
 ];
 function bootSeq() {
@@ -62,7 +64,7 @@ function bootSeq() {
     if (cls === 'title') {
       d.className = 'title'; box.appendChild(d);
       type(d, 'PATTERNS.EXE', 42, () => { d.innerHTML = 'PATTERNS<span class="x">.</span>EXE'; next(); });
-    } else { d.className = 'ln ' + cls; box.appendChild(d); type(d, txt, 15, next); }
+    } else { d.className = 'ln ' + cls; box.appendChild(d); type(d, txt, 14, next); }
   })();
 }
 
@@ -72,17 +74,25 @@ $('beginBtn').onclick = toIntake;
 
 function startExam() {
   STATE.subject = ($('nameIn').value || '').trim().toUpperCase() || 'SUBJECT UNKNOWN';
+  STATE.phase = 'intake'; STATE.qi = 0;
   show('exam');
-  $('meter').innerHTML = QUESTIONS.map(() => '<div class="seg"></div>').join('') + '<span class="lab" id="mlab"></span>';
+  buildMeter(INTAKE.length, 'INTAKE');
   ask();
 }
+function buildMeter(n, label) {
+  $('meter').innerHTML = Array.from({ length: n }, () => '<div class="seg"></div>').join('') + `<span class="lab" id="mlab"></span>`;
+  $('mlab').dataset.label = label;
+}
+function currentQ() { return STATE.phase === 'intake' ? INTAKE[STATE.qi] : STATE.exam[STATE.qi]; }
 
 function ask() {
-  $('mlab').textContent = 'SCAN ' + (STATE.qi + 1) + '/' + QUESTIONS.length;
+  const total = STATE.phase === 'intake' ? INTAKE.length : STATE.exam.length;
+  $('mlab').textContent = ($('mlab').dataset.label || 'SCAN') + ' ' + (STATE.qi + 1) + '/' + total;
   document.querySelectorAll('.seg').forEach((s, i) => s.classList.toggle('done', i < STATE.qi));
   $('aside').textContent = '';
-  const Q = QUESTIONS[STATE.qi];
-  FX.vignette($('vig'), Q.v);
+  const Q = currentQ();
+  FX.vignette($('vig'), Q.v || 'planning');
+  $('vig').style.opacity = STATE.phase === 'intake' ? .35 : 1;
   $('opts').classList.remove('show'); $('opts').innerHTML = '';
   type($('qtext'), Q.q, 16, () => {
     $('opts').innerHTML = Q.o.map((o, i) =>
@@ -94,13 +104,26 @@ function ask() {
 
 function answer(i) {
   AudioEngine.blip();
-  const w = QUESTIONS[STATE.qi].o[i][1];
-  for (const k in w) STATE.score[k] += w[k];
-  $('aside').textContent = '› ' + ASIDES[STATE.qi];
+  const Q = currentQ(), opt = Q.o[i];
+  for (const k in opt[1]) STATE.score[k] += opt[1][k];
+  if (STATE.phase === 'intake' && opt[2]) STATE.votes[opt[2]]++;
+  $('aside').textContent = '› ' + (STATE.phase === 'intake' ? INTAKE_ASIDES[STATE.qi] : ASIDES[STATE.qi % ASIDES.length]);
   $('opts').style.pointerEvents = 'none';
   setTimeout(() => {
     $('opts').style.pointerEvents = '';
-    if (++STATE.qi < QUESTIONS.length) ask(); else analysis();
+    STATE.qi++;
+    if (STATE.phase === 'intake') {
+      if (STATE.qi < INTAKE.length) return ask();
+      /* intake complete: resolve profile, assemble the adaptive exam */
+      STATE.profile = Object.entries(STATE.votes).sort((a, b) => b[1] - a[1])[0][0];
+      const [nb, nu] = EXAM_MIX[STATE.profile];
+      STATE.exam = shuffle(shuffle(BANK_BUILDER).slice(0, nb).concat(shuffle(BANK_UNIVERSAL).slice(0, nu)));
+      STATE.phase = 'exam'; STATE.qi = 0;
+      buildMeter(STATE.exam.length, 'SCAN');
+      AudioEngine.sweep();
+      return ask();
+    }
+    if (STATE.qi < STATE.exam.length) ask(); else analysis();
   }, 700);
 }
 
@@ -122,7 +145,7 @@ function analysis() {
 }
 function showBars() {
   AudioEngine.sweep();
-  const order = Object.entries(STATE.score).sort((a, b) => b[1] - a[1]);
+  const order = Object.entries(STATE.score).sort((a, b) => b[1] - a[1]).slice(0, 8);
   const max = Math.max(1, +order[0][1]);
   const wrap = $('anaBars'); wrap.innerHTML = '';
   for (const [k, v] of order) {
@@ -148,17 +171,18 @@ function verdict(fromHash) {
     ? 'SHARED DOSSIER · SOMEONE ELSE’S VERDICT'
     : 'DIAGNOSIS COMPLETE · SUBJECT: ' + STATE.subject;
   $('sharedNote').style.display = STATE.shared ? 'block' : 'none';
-  $('vName').textContent = 'PATTERN 0' + STATE.primary + ' / ' + P.name;
+  $('vName').textContent = 'PATTERN ' + pad(STATE.primary) + ' / ' + P.name;
   $('vName').classList.add('glitchy');
   $('vDiag').textContent = '“' + P.diag + '”';
   $('vTell').innerHTML = P.tell; $('vCost').innerHTML = P.cost; $('vRx').innerHTML = P.rx;
+  $('vDare').textContent = P.dare;
 
-  FX.numeral($('numCv'), '0' + STATE.primary, 700);
+  FX.numeral($('numCv'), pad(STATE.primary), 700);
   setTimeout(() => { $('vStamp').classList.add('go'); AudioEngine.thud(); }, 750);
   document.querySelectorAll('#verdict .cell').forEach((c, i) =>
     setTimeout(() => c.classList.add('go'), 1000 + i * 180));
+  setTimeout(() => $('dareBox').classList.add('go'), 1700);
 
-  /* full profile bars */
   const max = Math.max(1, +order[0][1]);
   const wrap = $('vBars'); wrap.innerHTML = '';
   if (!STATE.shared) {
@@ -171,17 +195,15 @@ function verdict(fromHash) {
     }
     const sec = order[1];
     $('vSec').innerHTML = sec[1] > 0
-      ? 'SECONDARY TRACE / <b>PATTERN 0' + sec[0] + ' · ' + PATTERNS[sec[0]].name + '</b> (watch it)'
+      ? 'SECONDARY TRACE / <b>PATTERN ' + pad(sec[0]) + ' · ' + PATTERNS[sec[0]].name + '</b> (watch it)'
       : 'No significant secondary trace. One clean enemy. Lucky you.';
-  } else {
-    $('vSec').textContent = '';
-  }
+  } else { $('vSec').textContent = ''; }
 }
 
 /* ---------------- share ---------------- */
 $('shareBtn').onclick = () => {
   const P = PATTERNS[STATE.primary];
-  const t = `PATTERNS.EXE diagnosed me: PATTERN 0${STATE.primary}, ${P.name}.\n“${P.diag}”\nRun yours → https://patterns-exe.vercel.app/#p${STATE.primary}`;
+  const t = `PATTERNS.EXE diagnosed me: PATTERN ${pad(STATE.primary)}, ${P.name}.\n“${P.diag}”\nMy dare: ${P.dare}\nRun yours → https://patterns-exe.vercel.app/#p${STATE.primary}`;
   if (navigator.share) navigator.share({ text: t }).catch(() => {});
   else { navigator.clipboard.writeText(t); $('shareBtn').textContent = 'COPIED'; setTimeout(() => $('shareBtn').textContent = 'COPY VERDICT', 1400); }
 };
@@ -197,21 +219,25 @@ $('cardBtn').onclick = () => {
   x.globalAlpha = 1;
   x.strokeStyle = '#1E2026'; x.lineWidth = 2; x.strokeRect(40, 40, 1000, 1270);
   x.font = '500 30px "Kode Mono"'; x.fillStyle = '#54534D';
-  x.fillText('PATTERNS.EXE · DIAGNOSTIC RECORD', 80, 130);
-  x.fillText('SUBJECT: ' + STATE.subject, 80, 180);
-  x.font = '700 560px "Kode Mono"'; x.strokeStyle = '#15161A'; x.lineWidth = 3;
-  x.strokeText('0' + STATE.primary, 540, 780);
-  x.fillStyle = '#EDEAE2'; x.font = '700 76px "Kode Mono"';
-  x.fillText('PATTERN 0' + STATE.primary, 80, 430);
-  x.font = '700 60px "Kode Mono"';
-  wrapText(x, P.name, 80, 520, 920, 72);
-  x.save(); x.translate(80, 660); x.rotate(-.05);
-  x.strokeStyle = '#E03131'; x.lineWidth = 5; x.strokeRect(0, 0, 540, 86);
-  x.fillStyle = '#E03131'; x.font = '700 34px "Kode Mono"'; x.fillText('C O N F I R M E D', 40, 58); x.restore();
-  x.fillStyle = '#EDEAE2'; x.font = 'italic 54px "Instrument Serif"';
-  wrapText(x, '“' + P.diag + '”', 80, 860, 900, 72);
+  x.fillText('PATTERNS.EXE · DIAGNOSTIC RECORD', 80, 124);
+  x.fillText('SUBJECT: ' + STATE.subject, 80, 170);
+  x.font = '700 470px "Kode Mono"'; x.strokeStyle = '#15161A'; x.lineWidth = 3;
+  x.strokeText(pad(STATE.primary), 500, 700);
+  x.fillStyle = '#EDEAE2'; x.font = '700 72px "Kode Mono"';
+  x.fillText('PATTERN ' + pad(STATE.primary), 80, 380);
+  x.font = '700 54px "Kode Mono"';
+  let yy = wrapText(x, P.name, 80, 462, 920, 64);
+  x.save(); x.translate(80, yy + 36); x.rotate(-.05);
+  x.strokeStyle = '#E03131'; x.lineWidth = 5; x.strokeRect(0, 0, 540, 80);
+  x.fillStyle = '#E03131'; x.font = '700 32px "Kode Mono"'; x.fillText('C O N F I R M E D', 44, 54); x.restore();
+  x.fillStyle = '#EDEAE2'; x.font = 'italic 50px "Instrument Serif"';
+  yy = wrapText(x, '“' + P.diag + '”', 80, yy + 196, 900, 66);
+  x.fillStyle = '#E03131'; x.font = '700 26px "Kode Mono"';
+  x.fillText('THE DARE · 7 DAYS', 80, yy + 86);
+  x.fillStyle = '#B8B5AC'; x.font = '500 30px "Kode Mono"';
+  wrapText(x, P.dare, 80, yy + 136, 900, 44);
   x.fillStyle = '#54534D'; x.font = '500 28px "Kode Mono"';
-  x.fillText('run yours → patterns-exe.vercel.app', 80, 1240);
+  x.fillText('run yours → patterns-exe.vercel.app', 80, 1250);
   const a = document.createElement('a');
   a.download = 'patterns-exe-verdict.png'; a.href = c.toDataURL('image/png'); a.click();
 };
@@ -222,6 +248,7 @@ function wrapText(x, t, lx, ly, maxW, lh) {
     else line += w + ' ';
   }
   x.fillText(line.trim(), lx, ly);
+  return ly;
 }
 
 /* ---------------- keys ---------------- */
@@ -240,8 +267,8 @@ document.addEventListener('keydown', e => {
 $('qtext').addEventListener('click', () => $('qtext')._skip && $('qtext')._skip());
 $('nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.stopPropagation(); startExam(); } });
 
-/* ---------------- entry: fresh run or shared deep link ---------------- */
-const hashMatch = location.hash.match(/^#p([1-8])$/);
+/* ---------------- entry ---------------- */
+const hashMatch = location.hash.match(/^#p([1-9]|1[0-3])$/);
 if (hashMatch) {
   STATE.shared = true; STATE.subject = 'SHARED';
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
