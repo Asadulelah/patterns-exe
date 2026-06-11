@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PATTERNS.EXE - a self-sabotage diagnostic for builders</title>
+<meta name="description" content="Eight questions. One verdict. A diagnostic that names the pattern quietly killing your output. Built from a real audit that hurt.">
+<meta property="og:title" content="PATTERNS.EXE">
+<meta property="og:description" content="Eight questions. One verdict. No mercy setting. Find the pattern quietly killing your output.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://patterns-exe.vercel.app">
+<meta name="theme-color" content="#07080A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+<canvas id="dust"></canvas>
+
+<div class="chrome">
+  <span class="id">/usr/bin/diagnostic · unauthorized self-examination tool · nothing stored, nothing leaves this page</span>
+  <button class="tgl" id="sndTgl">SOUND OFF</button>
+  <button class="tgl" id="motTgl">MOTION ON</button>
+</div>
+
+<div class="stage">
+
+  <!-- BOOT -->
+  <section class="screen on" id="boot">
+    <div class="sysline">SYSTEM READY</div>
+    <div id="bootLines"></div>
+    <button class="enter" id="beginBtn">BEGIN THE SCAN</button>
+    <div class="hint" id="bootHint">or press ENTER · 8 questions · ~2 minutes · the honest answers work better</div>
+  </section>
+
+  <!-- INTAKE -->
+  <section class="screen" id="intake">
+    <div class="sysline">INTAKE / 01</div>
+    <p class="prompt">State your name for the record.<br>The machine doesn't care. <b>The verdict will.</b></p>
+    <input id="nameIn" maxlength="18" placeholder="SUBJECT" autocomplete="off">
+    <div class="small">ENTER to continue · leave blank to stay anonymous</div>
+  </section>
+
+  <!-- EXAM -->
+  <section class="screen" id="exam">
+    <div class="meter" id="meter"></div>
+    <canvas id="vig"></canvas>
+    <div class="qtext" id="qtext" title="click to skip typing"></div>
+    <div class="opts" id="opts"></div>
+    <div class="aside" id="aside"></div>
+  </section>
+
+  <!-- ANALYSIS -->
+  <section class="screen" id="analysis">
+    <div class="sysline">PROCESSING · DO NOT FLATTER YOURSELF</div>
+    <div id="anaLines"></div>
+    <div class="bars" id="anaBars"></div>
+  </section>
+
+  <!-- VERDICT -->
+  <section class="screen" id="verdict">
+    <div class="sysline" id="vSys">DIAGNOSIS COMPLETE</div>
+    <div class="sharednote" id="sharedNote">You're reading <b>someone else's verdict.</b> They chose to show you this. Run your own before you judge them.</div>
+    <div class="stampwrap">
+      <canvas id="numCv"></canvas>
+      <div class="pname" id="vName"></div>
+      <br><span class="stamp" id="vStamp">CONFIRMED · PRIMARY PATTERN</span>
+    </div>
+    <p class="diag" id="vDiag"></p>
+    <div class="dossier">
+      <div class="cell"><div class="l">THE TELL</div><div class="b" id="vTell"></div></div>
+      <div class="cell"><div class="l">THE COST</div><div class="b" id="vCost"></div></div>
+      <div class="cell"><div class="l">THE PRESCRIPTION</div><div class="b" id="vRx"></div></div>
+    </div>
+    <div class="profile">
+      <div class="l" id="vProfL">FULL TRACE · ALL EIGHT PATTERNS</div>
+      <div class="bars" id="vBars"></div>
+    </div>
+    <div class="secondary" id="vSec"></div>
+    <div class="actions">
+      <button class="btn red" id="cardBtn">DOWNLOAD VERDICT CARD</button>
+      <button class="btn" id="shareBtn">COPY VERDICT</button>
+      <button class="btn" id="againBtn">RUN AGAIN</button>
+    </div>
+    <div class="foot">
+      PATTERNS.EXE was distilled from a real audit, the kind a builder runs on himself at 3 AM after a year of "busy."
+      The eight patterns are real. The verdict is blunt because the kind version doesn't work.<br>
+      No analytics, no storage, no account. Open source on
+      <a href="https://github.com/Asadulelah/patterns-exe" target="_blank" rel="noopener">GitHub</a> ·
+      built by <a href="https://github.com/Asadulelah" target="_blank" rel="noopener">Asadulelah</a>.
+    </div>
+  </section>
+
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/fx.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
